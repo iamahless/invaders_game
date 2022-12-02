@@ -1,6 +1,9 @@
-use crate::frame::{Drawable, Frame};
-use crate::shot::Shot;
-use crate::{NUM_COLS, NUM_ROWS};
+use crate::{
+    frame::{Drawable, Frame},
+    invaders::Invaders,
+    shot::Shot,
+    {NUM_COLS, NUM_ROWS},
+};
 use std::time::Duration;
 
 pub struct Player {
@@ -45,12 +48,31 @@ impl Player {
         }
         self.shots.retain(|shot| !shot.dead());
     }
+
+    pub fn detect_hits(&mut self, invaders: &mut Invaders) -> u16 {
+        let mut hit_something = 0u16;
+        for shot in self.shots.iter_mut() {
+            if !shot.exploding {
+                let hit_count = invaders.kill_invader_at(shot.x, shot.y);
+                if hit_count > 0 {
+                    hit_something += hit_count;
+                    shot.explode();
+                }
+            }
+        }
+        hit_something
+    }
+}
+
+impl Default for Player {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Drawable for Player {
     fn draw(&self, frame: &mut Frame) {
-        frame[self.x][self.y] = "A";
-
+        frame[self.x][self.y] = 'A';
         for shot in self.shots.iter() {
             shot.draw(frame);
         }
